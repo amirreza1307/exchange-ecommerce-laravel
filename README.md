@@ -1,13 +1,38 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel Exchange & Ecommerce Platform
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+یک پلتفرم کامل خرید و فروش رمز ارز ساخته شده با Laravel که شامل تمامی قابلیت‌های مدرن یک صرافی آنلاین است.
 
-## About Laravel
+## 🚀 ویژگی‌ها
+
+### 📱 قابلیت‌های کاربر
+- **احراز هویت**: ثبت نام، ورود، خروج با Laravel Sanctum
+- **مدیریت کیف پول**: واریز، برداشت، انتقال، مشاهده پرتفولیو
+- **معاملات**: خرید، فروش، تبدیل ارزها
+- **تاریخچه تراکنش‌ها**: فیلتر بر اساس نوع، وضعیت، تاریخ
+- **پروفایل کاربری**: مدیریت اطلاعات شخصی
+
+### 🛡️ پنل مدیریت
+- **داشبورد**: آمار کلی، گزارشات درآمد
+- **مدیریت کاربران**: مشاهده، جستجو، تغییر وضعیت
+- **مدیریت ارزها**: CRUD کامل، مدیریت خزانه
+- **مدیریت سفارشات**: تأیید، رد، تغییر وضعیت
+- **سیستم تخفیف**: ایجاد و مدیریت کدهای تخفیف
+- **نرخ تبدیل**: مدیریت نرخ‌های ارز
+
+## 🛠️ تکنولوژی‌ها
+
+- **Backend**: Laravel 11.x
+- **Database**: SQLite (قابل تغییر به MySQL/PostgreSQL)
+- **Authentication**: Laravel Sanctum (API Token)
+- **Testing**: PHPUnit (98 تست - 100% موفق)
+- **API**: RESTful API
+
+## 📋 پیش‌نیازها
+
+- PHP >= 8.2
+- Composer
+- Laravel 11.x
+- SQLite/MySQL/PostgreSQL
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
@@ -59,3 +84,91 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## ⚡ نصب و راه‌اندازی
+
+### 1. کلون کردن پروژه
+```bash
+git clone https://github.com/amirreza1307/exchange-ecommerce-laravel.git
+cd exchange-ecommerce-laravel
+```
+
+### 2. نصب وابستگی‌ها
+```bash
+composer install
+```
+
+### 3. تنظیم محیط
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+### 4. تنظیم دیتابیس
+```bash
+# اجرای migration ها
+php artisan migrate
+
+# اجرای seeders (داده‌های تست)
+php artisan db:seed
+```
+
+### 5. اجرای سرور
+```bash
+php artisan serve
+```
+
+## 🧪 اجرای تست‌ها
+
+```bash
+# اجرای همه تست‌ها
+php artisan test
+
+# نتیجه: OK (98 tests, 489 assertions)
+```
+
+## 👤 کاربران پیش‌فرض
+
+### ادمین
+- **ایمیل**: admin@exchange.com
+- **رمز عبور**: password
+
+### کاربر تست
+- **ایمیل**: user@exchange.com
+- **رمز عبور**: password
+
+## 📚 مستندات
+
+- [مستندات کامل API](API_DOCUMENTATION.md)
+- [گزارش تست‌ها](TEST_FINAL_REPORT.md)
+- [خلاصه پروژه](PROJECT_COMPLETION_SUMMARY.md)
+
+## 🔐 احراز هویت
+
+پروژه از Laravel Sanctum استفاده می‌کند:
+
+```http
+POST /api/login
+{
+    "email": "user@exchange.com",
+    "password": "password"
+}
+
+# سپس در همه درخواست‌ها:
+Authorization: Bearer YOUR_TOKEN
+```
+
+## 🤝 مشارکت
+
+1. Fork کنید
+2. Branch جدید ایجاد کنید
+3. تغییرات را commit کنید
+4. Pull Request ایجاد کنید
+
+## 📄 مجوز
+
+MIT License
+
+---
+
+⭐ اگر پروژه مفید بود، ستاره بدهید!
