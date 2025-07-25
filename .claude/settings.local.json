@@ -12,7 +12,9 @@
       "Bash(php:*)",
       "Bash(composer:*)",
       "Bash(grep:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(del:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }
