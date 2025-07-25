@@ -371,11 +371,13 @@ class AdminController extends Controller
     {
         $period = $request->get('period', 'month'); // day, week, month, year
         
+        $isSqlite = config('database.default') === 'sqlite';
+        
         $dateColumn = match($period) {
-            'day' => 'DATE(created_at)',
-            'week' => 'YEARWEEK(created_at)',
-            'month' => 'DATE_FORMAT(created_at, "%Y-%m")',
-            'year' => 'YEAR(created_at)'
+            'day' => $isSqlite ? 'DATE(created_at)' : 'DATE(created_at)',
+            'week' => $isSqlite ? 'strftime("%Y-%W", created_at)' : 'YEARWEEK(created_at)',
+            'month' => $isSqlite ? 'strftime("%Y-%m", created_at)' : 'DATE_FORMAT(created_at, "%Y-%m")',
+            'year' => $isSqlite ? 'strftime("%Y", created_at)' : 'YEAR(created_at)'
         };
 
         // Trading volume by period
@@ -428,11 +430,13 @@ class AdminController extends Controller
     {
         $period = $request->get('period', 'month');
         
+        $isSqlite = config('database.default') === 'sqlite';
+        
         $dateColumn = match($period) {
-            'day' => 'DATE(created_at)',
-            'week' => 'YEARWEEK(created_at)',
-            'month' => 'DATE_FORMAT(created_at, "%Y-%m")',
-            'year' => 'YEAR(created_at)'
+            'day' => $isSqlite ? 'DATE(created_at)' : 'DATE(created_at)',
+            'week' => $isSqlite ? 'strftime("%Y-%W", created_at)' : 'YEARWEEK(created_at)',
+            'month' => $isSqlite ? 'strftime("%Y-%m", created_at)' : 'DATE_FORMAT(created_at, "%Y-%m")',
+            'year' => $isSqlite ? 'strftime("%Y", created_at)' : 'YEAR(created_at)'
         };
 
         // Revenue by period

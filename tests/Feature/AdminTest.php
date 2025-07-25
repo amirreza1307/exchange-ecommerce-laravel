@@ -399,15 +399,9 @@ class AdminTest extends TestCase
                 ->assertJsonStructure([
                     'success',
                     'data' => [
-                        'period',
-                        'start_date',
-                        'end_date',
-                        'total_orders',
-                        'buy_orders',
-                        'sell_orders',
-                        'exchange_orders',
-                        'total_volume',
-                        'by_currency'
+                        'volume_data',
+                        'currency_stats',
+                        'top_traders'
                     ]
                 ]);
     }
@@ -430,13 +424,9 @@ class AdminTest extends TestCase
                 ->assertJsonStructure([
                     'success',
                     'data' => [
-                        'period',
-                        'start_date',
-                        'end_date',
-                        'total_revenue',
-                        'commission_revenue',
-                        'by_currency',
-                        'by_day'
+                        'revenue_data',
+                        'currency_revenue',
+                        'type_revenue'
                     ]
                 ]);
     }

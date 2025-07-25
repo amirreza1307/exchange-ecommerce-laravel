@@ -140,7 +140,8 @@ class OrderTest extends TestCase
 
         // Check if user wallet was updated
         $wallet = $this->user->getWalletForCurrency($this->btc->id);
-        $this->assertEquals($amount, $wallet->balance);
+        // Account for initial balance from seeder (0.01 BTC)
+        $this->assertEquals(0.01 + $amount, $wallet->balance);
     }
 
     public function test_user_cannot_buy_with_insufficient_balance(): void
@@ -166,10 +167,10 @@ class OrderTest extends TestCase
     {
         $amount = 0.001;
 
-        // Give user some BTC first
+        // Get existing wallet (has 0.01 BTC from seeder)
         $wallet = $this->user->getOrCreateWallet($this->btc->id);
-        $wallet->addBalance($amount);
-
+        $originalBalance = $wallet->balance;
+        
         $originalRialBalance = $this->user->rial_balance;
 
         $response = $this->withHeaders([
@@ -207,7 +208,7 @@ class OrderTest extends TestCase
 
         // Check if user's BTC was deducted
         $wallet->refresh();
-        $this->assertEquals(0, $wallet->balance);
+        $this->assertEqualsWithDelta($originalBalance - $amount, $wallet->balance, 0.00000001);
 
         // Check if user's rial balance increased
         $this->user->refresh();
@@ -216,11 +217,12 @@ class OrderTest extends TestCase
 
     public function test_user_cannot_sell_with_insufficient_balance(): void
     {
+        // Try to sell more than balance (user has 0.01 BTC from seeder)
         $response = $this->withHeaders([
             'Authorization' => 'Bearer ' . $this->token,
         ])->postJson('/api/orders/sell', [
             'currency_id' => $this->btc->id,
-            'amount' => 0.001
+            'amount' => 0.02  // More than initial balance
         ]);
 
         $response->assertStatus(422)
@@ -234,9 +236,9 @@ class OrderTest extends TestCase
     {
         $btcAmount = 0.001;
         
-        // Give user some BTC first
+        // Get existing BTC wallet (has 0.01 BTC from seeder)
         $btcWallet = $this->user->getOrCreateWallet($this->btc->id);
-        $btcWallet->addBalance($btcAmount);
+        $originalBtcBalance = $btcWallet->balance;
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer ' . $this->token,
@@ -266,7 +268,7 @@ class OrderTest extends TestCase
 
         // Check if BTC was deducted
         $btcWallet->refresh();
-        $this->assertEquals(0, $btcWallet->balance);
+        $this->assertEqualsWithDelta($originalBtcBalance - $btcAmount, $btcWallet->balance, 0.00000001);
 
         // Check if USDT was added
         $usdtWallet = $this->user->getWalletForCurrency($this->usdt->id);
