@@ -113,6 +113,46 @@ All API responses follow this structure:
 
 ---
 
+## Admin Authentication
+
+### Admin Login
+- **POST** `/admin/auth/login`
+- **Description**: Login endpoint specifically for admin users
+- **Body**:
+```json
+{
+    "email": "admin@exchange.com",
+    "password": "password"
+}
+```
+- **Response**:
+```json
+{
+    "success": true,
+    "message": "Admin login successful",
+    "data": {
+        "user": {
+            "id": 1,
+            "name": "Admin User",
+            "email": "admin@exchange.com",
+            "role": "admin",
+            "is_active": true
+        },
+        "token": "1|abc123...",
+        "token_type": "Bearer"
+    }
+}
+```
+- **Error Response (403 - Not Admin)**:
+```json
+{
+    "success": false,
+    "message": "Access denied. Admin privileges required."
+}
+```
+
+---
+
 ## Currency Endpoints
 
 ### Get All Currencies
@@ -309,6 +349,39 @@ All API responses follow this structure:
 
 ---
 
+## Discount Endpoints
+
+### Get Available Discounts
+- **GET** `/discounts`
+- **Headers**: `Authorization: Bearer {token}`
+- **Query Parameters**:
+  - `currency_id`: Filter by currency (optional)
+  - `per_page`: Number of items per page
+
+### Get Discount Details
+- **GET** `/discounts/{id}`
+- **Headers**: `Authorization: Bearer {token}`
+
+### Validate Discount Code
+- **POST** `/discounts/validate`
+- **Headers**: `Authorization: Bearer {token}`
+- **Body**:
+```json
+{
+    "code": "SAVE10",
+    "amount": 1000000,
+    "currency_id": 2
+}
+```
+
+### Get My Discount Usage History
+- **GET** `/discounts/my-usage`
+- **Headers**: `Authorization: Bearer {token}`
+- **Query Parameters**:
+  - `per_page`: Number of items per page
+
+---
+
 ## Admin Endpoints
 **Note**: All admin endpoints require admin role and `Authorization: Bearer {admin_token}`
 
@@ -408,6 +481,68 @@ All API responses follow this structure:
     "status": "completed"
 }
 ```
+
+### Discount Management
+
+#### Get All Discounts
+- **GET** `/admin/discounts`
+- **Query Parameters**:
+  - `status`: Filter by status (active, inactive, expired)
+  - `type`: Filter by type (percentage, fixed)
+  - `search`: Search by code, title or description
+  - `per_page`: Number of items per page
+
+#### Create Discount
+- **POST** `/admin/discounts`
+- **Body**:
+```json
+{
+    "code": "SAVE20",
+    "title": "Save 20%",
+    "description": "Limited time offer",
+    "type": "percentage",
+    "value": 20,
+    "currency_id": null,
+    "user_id": null,
+    "min_order_amount": 1000000,
+    "max_discount_amount": 500000,
+    "usage_limit": 100,
+    "user_usage_limit": 2,
+    "starts_at": "2024-01-01 00:00:00",
+    "expires_at": "2024-12-31 23:59:59",
+    "is_active": true
+}
+```
+
+#### Update Discount
+- **PUT** `/admin/discounts/{id}`
+- **Body**: Same as create (all fields optional)
+
+#### Delete Discount
+- **DELETE** `/admin/discounts/{id}`
+
+### Exchange Rate Management
+
+#### Create Exchange Rate
+- **POST** `/admin/exchange-rates`
+- **Body**:
+```json
+{
+    "from_currency_id": 2,
+    "to_currency_id": 3,
+    "rate": 24.17,
+    "buy_rate": 24.17,
+    "sell_rate": 24.10,
+    "is_active": true
+}
+```
+
+#### Update Exchange Rate
+- **PUT** `/admin/exchange-rates/{id}`
+- **Body**: Same as create (all fields optional)
+
+#### Delete Exchange Rate
+- **DELETE** `/admin/exchange-rates/{id}`
 
 ### Reports
 

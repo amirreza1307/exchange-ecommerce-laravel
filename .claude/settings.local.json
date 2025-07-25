@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(copy .env.example .env)",
+      "Bash(cp:*)",
+      "Bash(composer install:*)",
+      "Bash(php artisan:*)",
+      "Bash(touch:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(rm:*)",
+      "Bash(php:*)",
+      "Bash(composer:*)",
+      "Bash(grep:*)",
+      "Bash(git config:*)"
+    ],
+    "deny": []
+  }
+}

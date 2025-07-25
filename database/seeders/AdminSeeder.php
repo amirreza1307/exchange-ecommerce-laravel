@@ -27,9 +27,12 @@ class AdminSeeder extends Seeder
         // Create test user
         User::create([
             'name' => 'Test User',
-            'email' => 'user@test.com',
-            'password' => Hash::make('password123'),
+            'email' => 'user@exchange.com',
+            'password' => Hash::make('password'),
             'phone' => '09123456789',
+            'national_id' => '1234567890',
+            'bank_account' => '123-456-789',
+            'bank_name' => 'Bank Melli',
             'role' => 'user',
             'is_active' => true,
             'rial_balance' => 10000000, // 10 million IRR for testing

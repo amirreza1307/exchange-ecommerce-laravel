@@ -202,4 +202,178 @@ class WalletTest extends TestCase
 
         $response->assertStatus(401);
     }
+
+    public function test_user_can_get_portfolio()
+    {
+        Sanctum::actingAs($this->user);
+
+        // Create wallets with different balances
+        $btc = Currency::factory()->create(['symbol' => 'BTCT', 'sell_price' => 50000]);
+        $eth = Currency::factory()->create(['symbol' => 'ETHT', 'sell_price' => 3000]);
+        
+        Wallet::factory()->create([
+            'user_id' => $this->user->id,
+            'currency_id' => $btc->id,
+            'balance' => 0.5
+        ]);
+        
+        Wallet::factory()->create([
+            'user_id' => $this->user->id,
+            'currency_id' => $eth->id,
+            'balance' => 10
+        ]);
+
+        $response = $this->getJson('/api/wallets/portfolio');
+
+        $response->assertStatus(200)
+                ->assertJsonStructure([
+                    'success',
+                    'data' => [
+                        'wallets' => [
+                            '*' => [
+                                'currency',
+                                'balance',
+                                'value_in_rial'
+                            ]
+                        ],
+                        'total_value'
+                    ]
+                ]);
+    }
+
+    public function test_user_can_get_wallet_transactions()
+    {
+        Sanctum::actingAs($this->user);
+
+        $wallet = Wallet::factory()->create([
+            'user_id' => $this->user->id,
+            'currency_id' => $this->currency->id
+        ]);
+
+        $response = $this->getJson("/api/wallets/{$this->currency->id}/transactions");
+
+        $response->assertStatus(200)
+                ->assertJsonStructure([
+                    'success',
+                    'data' => [
+                        'data' => [],
+                        'current_page',
+                        'total'
+                    ]
+                ]);
+    }
+
+    public function test_user_can_transfer_between_currencies()
+    {
+        Sanctum::actingAs($this->user);
+
+        // Create two currencies
+        $btcCurrency = Currency::factory()->create(['symbol' => 'TST1', 'is_active' => true]);
+        $ethCurrency = Currency::factory()->create(['symbol' => 'TST2', 'is_active' => true]);
+
+        // Create wallet with BTC balance
+        $btcWallet = Wallet::factory()->create([
+            'user_id' => $this->user->id,
+            'currency_id' => $btcCurrency->id,
+            'balance' => 1
+        ]);
+
+        // Create empty ETH wallet
+        $ethWallet = Wallet::factory()->create([
+            'user_id' => $this->user->id,
+            'currency_id' => $ethCurrency->id,
+            'balance' => 0
+        ]);
+
+        // Create exchange rate
+        \App\Models\ExchangeRate::create([
+            'from_currency_id' => $btcCurrency->id,
+            'to_currency_id' => $ethCurrency->id,
+            'rate' => 15 // 1 BTC = 15 ETH
+        ]);
+
+        $response = $this->postJson('/api/wallets/transfer', [
+            'from_currency_id' => $btcCurrency->id,
+            'to_currency_id' => $ethCurrency->id,
+            'amount' => 0.1
+        ]);
+
+        $response->assertStatus(200)
+                ->assertJson([
+                    'success' => true,
+                    'message' => 'Transfer completed successfully'
+                ]);
+    }
+
+    public function test_user_cannot_transfer_more_than_balance()
+    {
+        Sanctum::actingAs($this->user);
+
+        $fromCurrency = Currency::factory()->create(['is_active' => true]);
+        $toCurrency = Currency::factory()->create(['is_active' => true]);
+
+        $wallet = Wallet::factory()->create([
+            'user_id' => $this->user->id,
+            'currency_id' => $fromCurrency->id,
+            'balance' => 10
+        ]);
+
+        \App\Models\ExchangeRate::create([
+            'from_currency_id' => $fromCurrency->id,
+            'to_currency_id' => $toCurrency->id,
+            'rate' => 2
+        ]);
+
+        $response = $this->postJson('/api/wallets/transfer', [
+            'from_currency_id' => $fromCurrency->id,
+            'to_currency_id' => $toCurrency->id,
+            'amount' => 20
+        ]);
+
+        $response->assertStatus(422)
+                ->assertJson([
+                    'success' => false,
+                    'message' => 'Insufficient balance'
+                ]);
+    }
+
+    public function test_transfer_between_same_currency_fails()
+    {
+        Sanctum::actingAs($this->user);
+
+        $currency = Currency::factory()->create(['is_active' => true]);
+
+        $wallet = Wallet::factory()->create([
+            'user_id' => $this->user->id,
+            'currency_id' => $currency->id,
+            'balance' => 100
+        ]);
+
+        $response = $this->postJson('/api/wallets/transfer', [
+            'from_currency_id' => $currency->id,
+            'to_currency_id' => $currency->id,
+            'amount' => 50
+        ]);
+
+        $response->assertStatus(422)
+                ->assertJsonValidationErrors(['to_currency_id']);
+    }
+
+    public function test_transfer_requires_valid_data()
+    {
+        Sanctum::actingAs($this->user);
+
+        $response = $this->postJson('/api/wallets/transfer', [
+            'from_currency_id' => 999,
+            'to_currency_id' => 998,
+            'amount' => -50
+        ]);
+
+        $response->assertStatus(422)
+                ->assertJsonStructure([
+                    'success',
+                    'message',
+                    'errors'
+                ]);
+    }
 }

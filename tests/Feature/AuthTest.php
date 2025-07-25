@@ -215,4 +215,131 @@ class AuthTest extends TestCase
                     'message' => 'Logged out successfully'
                 ]);
     }
+
+    public function test_admin_can_login_via_admin_endpoint(): void
+    {
+        $admin = User::factory()->create([
+            'email' => 'admin@test.com',
+            'password' => Hash::make('password123'),
+            'role' => 'admin',
+            'is_active' => true
+        ]);
+
+        $response = $this->postJson('/api/admin/auth/login', [
+            'email' => 'admin@test.com',
+            'password' => 'password123'
+        ]);
+
+        $response->assertStatus(200)
+                ->assertJsonStructure([
+                    'success',
+                    'message',
+                    'data' => [
+                        'user' => [
+                            'id',
+                            'name',
+                            'email',
+                            'role',
+                            'is_active'
+                        ],
+                        'token',
+                        'token_type'
+                    ]
+                ])
+                ->assertJson([
+                    'success' => true,
+                    'message' => 'Admin login successful',
+                    'data' => [
+                        'user' => [
+                            'role' => 'admin'
+                        ]
+                    ]
+                ]);
+    }
+
+    public function test_regular_user_cannot_login_via_admin_endpoint(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'user@test.com',
+            'password' => Hash::make('password123'),
+            'role' => 'user',
+            'is_active' => true
+        ]);
+
+        $response = $this->postJson('/api/admin/auth/login', [
+            'email' => 'user@test.com',
+            'password' => 'password123'
+        ]);
+
+        $response->assertStatus(403)
+                ->assertJson([
+                    'success' => false,
+                    'message' => 'Access denied. Admin privileges required.'
+                ]);
+    }
+
+    public function test_admin_cannot_login_with_invalid_credentials(): void
+    {
+        $admin = User::factory()->create([
+            'email' => 'admin@test.com',
+            'password' => Hash::make('password123'),
+            'role' => 'admin',
+            'is_active' => true
+        ]);
+
+        $response = $this->postJson('/api/admin/auth/login', [
+            'email' => 'admin@test.com',
+            'password' => 'wrongpassword'
+        ]);
+
+        $response->assertStatus(401)
+                ->assertJson([
+                    'success' => false,
+                    'message' => 'Invalid credentials'
+                ]);
+    }
+
+    public function test_inactive_admin_cannot_login(): void
+    {
+        $admin = User::factory()->create([
+            'email' => 'admin@test.com',
+            'password' => Hash::make('password123'),
+            'role' => 'admin',
+            'is_active' => false
+        ]);
+
+        $response = $this->postJson('/api/admin/auth/login', [
+            'email' => 'admin@test.com',
+            'password' => 'password123'
+        ]);
+
+        $response->assertStatus(403)
+                ->assertJson([
+                    'success' => false,
+                    'message' => 'Account is inactive'
+                ]);
+    }
+
+    public function test_authenticated_user_can_logout_all_devices(): void
+    {
+        $user = User::factory()->create();
+        
+        // Create multiple tokens
+        $token1 = $user->createToken('device-1')->plainTextToken;
+        $token2 = $user->createToken('device-2')->plainTextToken;
+        $token3 = $user->createToken('device-3')->plainTextToken;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token1,
+        ])->postJson('/api/auth/logout-all');
+
+        $response->assertStatus(200)
+                ->assertJson([
+                    'success' => true,
+                    'message' => 'Logged out from all devices successfully'
+                ]);
+
+        // Verify all tokens are deleted
+        $this->assertEquals(0, $user->tokens()->count());
+    }
 }

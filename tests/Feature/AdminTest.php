@@ -381,4 +381,271 @@ class AdminTest extends TestCase
         $response->assertStatus(422)
                 ->assertJsonValidationErrors(['code', 'type', 'value']);
     }
+
+    public function test_admin_can_get_trading_report()
+    {
+        Sanctum::actingAs($this->admin);
+
+        // Create some test orders
+        Order::factory()->count(10)->create([
+            'type' => 'buy',
+            'status' => 'completed',
+            'created_at' => now()->subDays(5)
+        ]);
+
+        $response = $this->getJson('/api/admin/reports/trading?period=week');
+
+        $response->assertStatus(200)
+                ->assertJsonStructure([
+                    'success',
+                    'data' => [
+                        'period',
+                        'start_date',
+                        'end_date',
+                        'total_orders',
+                        'buy_orders',
+                        'sell_orders',
+                        'exchange_orders',
+                        'total_volume',
+                        'by_currency'
+                    ]
+                ]);
+    }
+
+    public function test_admin_can_get_revenue_report()
+    {
+        Sanctum::actingAs($this->admin);
+
+        // Create some test transactions
+        Transaction::factory()->count(15)->create([
+            'type' => 'buy',
+            'status' => 'completed',
+            'fee' => 1000,
+            'created_at' => now()->subDays(3)
+        ]);
+
+        $response = $this->getJson('/api/admin/reports/revenue?period=month');
+
+        $response->assertStatus(200)
+                ->assertJsonStructure([
+                    'success',
+                    'data' => [
+                        'period',
+                        'start_date',
+                        'end_date',
+                        'total_revenue',
+                        'commission_revenue',
+                        'by_currency',
+                        'by_day'
+                    ]
+                ]);
+    }
+
+    public function test_admin_can_get_user_activity()
+    {
+        Sanctum::actingAs($this->admin);
+
+        $user = User::factory()->create();
+        
+        // Create some activity
+        Order::factory()->count(5)->create(['user_id' => $user->id]);
+        Transaction::factory()->count(8)->create(['user_id' => $user->id]);
+
+        $response = $this->getJson("/api/admin/users/{$user->id}/activity");
+
+        $response->assertStatus(200)
+                ->assertJsonStructure([
+                    'success',
+                    'data' => [
+                        'user',
+                        'wallets',
+                        'recent_orders',
+                        'recent_transactions',
+                        'stats'
+                    ]
+                ]);
+    }
+
+    public function test_admin_can_update_user_status_endpoint()
+    {
+        Sanctum::actingAs($this->admin);
+
+        $user = User::factory()->create(['is_active' => true]);
+
+        $response = $this->putJson("/api/admin/users/{$user->id}/status", [
+            'is_active' => false
+        ]);
+
+        $response->assertStatus(200)
+                ->assertJson([
+                    'success' => true,
+                    'message' => 'User status updated successfully'
+                ]);
+
+        $this->assertFalse($user->fresh()->is_active);
+    }
+
+    public function test_admin_can_get_pending_orders()
+    {
+        Sanctum::actingAs($this->admin);
+
+        Order::factory()->count(5)->create(['status' => 'pending']);
+        Order::factory()->count(3)->create(['status' => 'completed']);
+
+        $response = $this->getJson('/api/admin/orders/pending');
+
+        $response->assertStatus(200);
+        
+        $orders = $response->json('data');
+        foreach ($orders as $order) {
+            $this->assertEquals('pending', $order['status']);
+        }
+    }
+
+    public function test_admin_can_update_order_status_endpoint()
+    {
+        Sanctum::actingAs($this->admin);
+
+        $order = Order::factory()->create(['status' => 'pending']);
+
+        $response = $this->putJson("/api/admin/orders/{$order->id}/status", [
+            'status' => 'completed'
+        ]);
+
+        $response->assertStatus(200)
+                ->assertJson([
+                    'success' => true,
+                    'message' => 'Order status updated successfully'
+                ]);
+
+        $this->assertEquals('completed', $order->fresh()->status);
+    }
+
+    public function test_admin_can_get_pending_transactions()
+    {
+        Sanctum::actingAs($this->admin);
+
+        Transaction::factory()->count(4)->create(['status' => 'pending']);
+        Transaction::factory()->count(6)->create(['status' => 'completed']);
+
+        $response = $this->getJson('/api/admin/transactions/pending');
+
+        $response->assertStatus(200);
+        
+        $transactions = $response->json('data');
+        foreach ($transactions as $transaction) {
+            $this->assertEquals('pending', $transaction['status']);
+        }
+    }
+
+    public function test_admin_can_update_transaction_status()
+    {
+        Sanctum::actingAs($this->admin);
+
+        $transaction = Transaction::factory()->create(['status' => 'pending']);
+
+        $response = $this->putJson("/api/admin/transactions/{$transaction->id}/status", [
+            'status' => 'completed'
+        ]);
+
+        $response->assertStatus(200)
+                ->assertJson([
+                    'success' => true,
+                    'message' => 'Transaction status updated successfully'
+                ]);
+
+        $this->assertEquals('completed', $transaction->fresh()->status);
+    }
+
+    public function test_admin_can_delete_exchange_rate()
+    {
+        Sanctum::actingAs($this->admin);
+
+        $fromCurrency = Currency::factory()->create();
+        $toCurrency = Currency::factory()->create();
+        
+        $exchangeRate = ExchangeRate::create([
+            'from_currency_id' => $fromCurrency->id,
+            'to_currency_id' => $toCurrency->id,
+            'rate' => 1.5
+        ]);
+
+        $response = $this->deleteJson("/api/admin/exchange-rates/{$exchangeRate->id}");
+
+        $response->assertStatus(200)
+                ->assertJson([
+                    'success' => true,
+                    'message' => 'Exchange rate deleted successfully'
+                ]);
+
+        $this->assertDatabaseMissing('exchange_rates', ['id' => $exchangeRate->id]);
+    }
+
+    public function test_admin_can_update_user()
+    {
+        Sanctum::actingAs($this->admin);
+
+        $user = User::factory()->create();
+
+        $response = $this->putJson("/api/admin/users/{$user->id}", [
+            'name' => 'Updated Name',
+            'email' => 'updated@example.com'
+        ]);
+
+        $response->assertStatus(200)
+                ->assertJson([
+                    'success' => true,
+                    'message' => 'User updated successfully'
+                ]);
+
+        $updatedUser = $user->fresh();
+        $this->assertEquals('Updated Name', $updatedUser->name);
+        $this->assertEquals('updated@example.com', $updatedUser->email);
+    }
+
+    public function test_admin_can_get_all_transactions()
+    {
+        Sanctum::actingAs($this->admin);
+
+        Transaction::factory()->count(15)->create();
+
+        $response = $this->getJson('/api/admin/transactions');
+
+        $response->assertStatus(200)
+                ->assertJsonStructure([
+                    'success',
+                    'data' => [
+                        'data' => [
+                            '*' => [
+                                'id',
+                                'type',
+                                'amount',
+                                'status',
+                                'user',
+                                'currency'
+                            ]
+                        ],
+                        'current_page',
+                        'total'
+                    ]
+                ]);
+    }
+
+    public function test_admin_can_update_order()
+    {
+        Sanctum::actingAs($this->admin);
+
+        $order = Order::factory()->create();
+
+        $response = $this->putJson("/api/admin/orders/{$order->id}", [
+            'status' => 'processing',
+            'notes' => 'Admin notes here'
+        ]);
+
+        $response->assertStatus(200)
+                ->assertJson([
+                    'success' => true,
+                    'message' => 'Order updated successfully'
+                ]);
+    }
 }

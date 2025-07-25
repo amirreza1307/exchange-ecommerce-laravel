@@ -210,4 +210,58 @@ class AuthController extends Controller
             'message' => 'Logged out from all devices successfully'
         ]);
     }
+
+    /**
+     * Admin login
+     */
+    public function adminLogin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        if (!Auth::attempt($request->only('email', 'password'))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid credentials'
+            ], 401);
+        }
+
+        $user = User::where('email', $request->email)->firstOrFail();
+
+        if ($user->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Access denied. Admin privileges required.'
+            ], 403);
+        }
+
+        if (!$user->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Account is inactive'
+            ], 403);
+        }
+
+        $token = $user->createToken('admin_token')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Admin login successful',
+            'data' => [
+                'user' => $user,
+                'token' => $token,
+                'token_type' => 'Bearer'
+            ]
+        ]);
+    }
 }

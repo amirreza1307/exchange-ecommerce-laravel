@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\WalletController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\DiscountController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +26,9 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 });
+
+// Admin login (public route)
+Route::post('/admin/auth/login', [AuthController::class, 'adminLogin']);
 
 // Public currency info
 Route::get('/currencies', [CurrencyController::class, 'index']);
@@ -71,6 +75,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [TransactionController::class, 'show']);
     });
 
+    // Discount routes
+    Route::prefix('discounts')->group(function () {
+        Route::get('/', [DiscountController::class, 'index']);
+        Route::get('/my-usage', [DiscountController::class, 'myUsage']);
+        Route::get('/{id}', [DiscountController::class, 'show']);
+        Route::post('/validate', [DiscountController::class, 'validate']);
+    });
+
     // Admin routes
     Route::middleware('admin')->prefix('admin')->group(function () {
         
@@ -91,6 +103,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Discount management
         Route::prefix('discounts')->group(function () {
+            Route::get('/', [AdminController::class, 'listDiscounts']);
             Route::post('/', [AdminController::class, 'createDiscount']);
             Route::put('/{id}', [AdminController::class, 'updateDiscount']);
             Route::delete('/{id}', [AdminController::class, 'deleteDiscount']);

@@ -1,0 +1,2463 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مستندات API - صرافی آنلاین</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Vazir', 'IRANSans', Tahoma, Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            background-color: #343a40;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 280px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        .sidebar .nav-link {
+            color: #adb5bd;
+            padding: 10px 20px;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: #495057;
+        }
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: #007bff;
+        }
+        .main-content {
+            margin-right: 280px;
+            padding: 20px;
+        }
+        .endpoint-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .endpoint-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            cursor: pointer;
+        }
+        .method-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .method-get { background-color: #28a745; color: white; }
+        .method-post { background-color: #007bff; color: white; }
+        .method-put { background-color: #ffc107; color: black; }
+        .method-delete { background-color: #dc3545; color: white; }
+        .endpoint-content {
+            padding: 20px;
+            display: none;
+        }
+        .endpoint-content.show {
+            display: block;
+        }
+        .code-block {
+            background-color: #f4f4f4;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            direction: ltr;
+            text-align: left;
+            overflow-x: auto;
+        }
+        .test-area {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .response-area {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            direction: ltr;
+            text-align: left;
+            min-height: 100px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .category-title {
+            color: #495057;
+            margin: 30px 0 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .nav-category {
+            color: #6c757d;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 10px 20px 5px;
+            text-transform: uppercase;
+        }
+        .param-table {
+            width: 100%;
+            margin-top: 15px;
+        }
+        .param-table th {
+            background-color: #f8f9fa;
+            padding: 10px;
+            text-align: right;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .param-table td {
+            padding: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .required-badge {
+            background-color: #dc3545;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+        .optional-badge {
+            background-color: #6c757d;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            .main-content {
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="p-3">
+            <h4 class="text-white mb-4">مستندات API</h4>
+            
+            <div class="nav-category">احراز هویت</div>
+            <a href="#register" class="nav-link">ثبت نام</a>
+            <a href="#login" class="nav-link">ورود</a>
+            <a href="#admin-login" class="nav-link">ورود مدیر</a>
+            <a href="#profile" class="nav-link">پروفایل</a>
+            <a href="#update-profile" class="nav-link">بروزرسانی پروفایل</a>
+            <a href="#change-password" class="nav-link">تغییر رمز عبور</a>
+            <a href="#logout" class="nav-link">خروج</a>
+            <a href="#logout-all" class="nav-link">خروج از همه دستگاه‌ها</a>
+            
+            <div class="nav-category mt-3">ارزها</div>
+            <a href="#currencies-list" class="nav-link">لیست ارزها</a>
+            <a href="#trading-currencies" class="nav-link">ارزهای قابل معامله</a>
+            <a href="#currency-detail" class="nav-link">جزئیات ارز</a>
+            
+            <div class="nav-category mt-3">کیف پول</div>
+            <a href="#wallets" class="nav-link">کیف پول‌ها</a>
+            <a href="#portfolio" class="nav-link">پرتفولیو</a>
+            <a href="#deposit" class="nav-link">واریز</a>
+            <a href="#withdraw" class="nav-link">برداشت</a>
+            
+            <div class="nav-category mt-3">سفارشات</div>
+            <a href="#orders-list" class="nav-link">لیست سفارشات</a>
+            <a href="#buy-order" class="nav-link">خرید</a>
+            <a href="#sell-order" class="nav-link">فروش</a>
+            <a href="#exchange-order" class="nav-link">تبدیل</a>
+            <a href="#quote" class="nav-link">استعلام قیمت</a>
+            
+            <div class="nav-category mt-3">تراکنش‌ها</div>
+            <a href="#transactions" class="nav-link">لیست تراکنش‌ها</a>
+            
+            <div class="nav-category mt-3">تخفیف‌ها</div>
+            <a href="#discounts" class="nav-link">لیست تخفیف‌ها</a>
+            <a href="#discount-validate" class="nav-link">اعتبارسنجی تخفیف</a>
+            <a href="#discount-usage" class="nav-link">تاریخچه استفاده</a>
+            
+            <div class="nav-category mt-3">مدیریت</div>
+            <a href="#admin-dashboard" class="nav-link">داشبورد</a>
+            <a href="#admin-users" class="nav-link">کاربران</a>
+            <a href="#admin-currencies" class="nav-link">مدیریت ارزها</a>
+            <a href="#admin-discounts" class="nav-link">مدیریت تخفیف‌ها</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container-fluid">
+            <h1 class="mb-4">مستندات API صرافی آنلاین</h1>
+            
+            <!-- Test Settings -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">تنظیمات تست API</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="baseUrl" class="form-label">آدرس پایه API:</label>
+                            <input type="text" class="form-control" id="baseUrl" value="http://localhost:8000/api" dir="ltr">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="authToken" class="form-label">توکن احراز هویت:</label>
+                            <input type="text" class="form-control" id="authToken" placeholder="Bearer token..." dir="ltr">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Authentication Section -->
+            <h2 class="category-title">احراز هویت</h2>
+            
+            <!-- Register Endpoint -->
+            <div id="register" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('register')">
+                    <span class="method-badge method-post">POST</span>
+                    <strong>/auth/register</strong> - ثبت نام کاربر جدید
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="register-content">
+                    <p>ایجاد حساب کاربری جدید در سیستم صرافی</p>
+                    
+                    <h6 class="mt-3">پارامترهای ورودی:</h6>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>نام پارامتر</th>
+                                <th>نوع</th>
+                                <th>توضیحات</th>
+                                <th>الزامی</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>name</td>
+                                <td>string</td>
+                                <td>نام و نام خانوادگی</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>email</td>
+                                <td>string</td>
+                                <td>آدرس ایمیل</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>password</td>
+                                <td>string</td>
+                                <td>رمز عبور (حداقل 8 کاراکتر)</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>password_confirmation</td>
+                                <td>string</td>
+                                <td>تکرار رمز عبور</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>phone</td>
+                                <td>string</td>
+                                <td>شماره موبایل</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>national_id</td>
+                                <td>string</td>
+                                <td>کد ملی</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>bank_account</td>
+                                <td>string</td>
+                                <td>شماره حساب بانکی</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>bank_name</td>
+                                <td>string</td>
+                                <td>نام بانک</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h6 class="mt-3">نمونه درخواست:</h6>
+                    <div class="code-block">
+{
+    "name": "علی رضایی",
+    "email": "ali@example.com",
+    "password": "password123",
+    "password_confirmation": "password123",
+    "phone": "09123456789",
+    "national_id": "1234567890",
+    "bank_account": "123-456-789",
+    "bank_name": "بانک ملی"
+}
+                    </div>
+
+                    <h6 class="mt-3">نمونه پاسخ موفق:</h6>
+                    <div class="code-block">
+{
+    "success": true,
+    "message": "User registered successfully",
+    "data": {
+        "user": {
+            "id": 1,
+            "name": "علی رضایی",
+            "email": "ali@example.com",
+            "role": "user",
+            "is_active": true
+        },
+        "token": "1|abc123...",
+        "token_type": "Bearer"
+    }
+}
+                    </div>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>بدنه درخواست (JSON):</label>
+                                <textarea class="form-control mb-3" id="register-body" rows="10" dir="ltr">{
+    "name": "کاربر تست",
+    "email": "test@example.com",
+    "password": "password123",
+    "password_confirmation": "password123",
+    "phone": "09123456789",
+    "national_id": "1234567890",
+    "bank_account": "123-456-789",
+    "bank_name": "بانک ملی"
+}</textarea>
+                                <button class="btn btn-primary" onclick="testEndpoint('POST', '/auth/register', 'register-body', 'register-response', false)">
+                                    <i class="fas fa-play"></i> ارسال درخواست
+                                </button>
+                            </div>
+                        </div>
+                        <div class="response-area" id="register-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Login Endpoint -->
+            <div id="login" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('login')">
+                    <span class="method-badge method-post">POST</span>
+                    <strong>/auth/login</strong> - ورود به سیستم
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="login-content">
+                    <p>ورود به سیستم با ایمیل و رمز عبور</p>
+                    
+                    <h6 class="mt-3">پارامترهای ورودی:</h6>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>نام پارامتر</th>
+                                <th>نوع</th>
+                                <th>توضیحات</th>
+                                <th>الزامی</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>email</td>
+                                <td>string</td>
+                                <td>آدرس ایمیل</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>password</td>
+                                <td>string</td>
+                                <td>رمز عبور</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h6 class="mt-3">نمونه درخواست:</h6>
+                    <div class="code-block">
+{
+    "email": "user@exchange.com",
+    "password": "password"
+}
+                    </div>
+
+                    <h6 class="mt-3">نمونه پاسخ موفق:</h6>
+                    <div class="code-block">
+{
+    "success": true,
+    "message": "User logged in successfully",
+    "data": {
+        "user": {
+            "id": 2,
+            "name": "کاربر تست",
+            "email": "user@exchange.com",
+            "role": "user",
+            "is_active": true
+        },
+        "token": "2|xyz789...",
+        "token_type": "Bearer"
+    }
+}
+                    </div>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>بدنه درخواست (JSON):</label>
+                                <textarea class="form-control mb-3" id="login-body" rows="4" dir="ltr">{
+    "email": "user@exchange.com",
+    "password": "password"
+}</textarea>
+                                <button class="btn btn-primary" onclick="testEndpoint('POST', '/auth/login', 'login-body', 'login-response', false)">
+                                    <i class="fas fa-play"></i> ارسال درخواست
+                                </button>
+                            </div>
+                        </div>
+                        <div class="response-area" id="login-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Login Endpoint -->
+            <div id="admin-login" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('admin-login')">
+                    <span class="method-badge method-post">POST</span>
+                    <strong>/admin/auth/login</strong> - ورود مدیر سیستم
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="admin-login-content">
+                    <p>ورود به سیستم برای کاربران با دسترسی مدیریت</p>
+                    
+                    <h6 class="mt-3">پارامترهای ورودی:</h6>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>نام پارامتر</th>
+                                <th>نوع</th>
+                                <th>توضیحات</th>
+                                <th>الزامی</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>email</td>
+                                <td>string</td>
+                                <td>آدرس ایمیل مدیر</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>password</td>
+                                <td>string</td>
+                                <td>رمز عبور مدیر</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h6 class="mt-3">نمونه درخواست:</h6>
+                    <div class="code-block">
+{
+    "email": "admin@exchange.com",
+    "password": "password"
+}
+                    </div>
+
+                    <h6 class="mt-3">نمونه پاسخ موفق:</h6>
+                    <div class="code-block">
+{
+    "success": true,
+    "message": "Admin login successful",
+    "data": {
+        "user": {
+            "id": 1,
+            "name": "مدیر سیستم",
+            "email": "admin@exchange.com",
+            "role": "admin",
+            "is_active": true
+        },
+        "token": "1|xyz789...",
+        "token_type": "Bearer"
+    }
+}
+                    </div>
+
+                    <h6 class="mt-3">پاسخ خطا (کاربر غیر مدیر):</h6>
+                    <div class="code-block">
+{
+    "success": false,
+    "message": "Access denied. Admin privileges required."
+}
+                    </div>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>بدنه درخواست (JSON):</label>
+                                <textarea class="form-control mb-3" id="admin-login-body" rows="4" dir="ltr">{
+    "email": "admin@exchange.com",
+    "password": "password"
+}</textarea>
+                                <button class="btn btn-primary" onclick="testEndpoint('POST', '/admin/auth/login', 'admin-login-body', 'admin-login-response', false)">
+                                    <i class="fas fa-play"></i> ارسال درخواست
+                                </button>
+                            </div>
+                        </div>
+                        <div class="response-area" id="admin-login-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Endpoint -->
+            <div id="profile" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('profile')">
+                    <span class="method-badge method-get">GET</span>
+                    <strong>/auth/profile</strong> - مشاهده پروفایل
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="profile-content">
+                    <p>مشاهده اطلاعات پروفایل کاربر جاری</p>
+                    
+                    <h6 class="mt-3">هدرهای مورد نیاز:</h6>
+                    <div class="code-block">
+Authorization: Bearer {token}
+                    </div>
+
+                    <h6 class="mt-3">نمونه پاسخ:</h6>
+                    <div class="code-block">
+{
+    "success": true,
+    "data": {
+        "id": 2,
+        "name": "کاربر تست",
+        "email": "user@exchange.com",
+        "phone": "09123456789",
+        "national_id": "1234567890",
+        "bank_account": "123-456-789",
+        "bank_name": "بانک ملی",
+        "role": "user",
+        "is_active": true,
+        "created_at": "2025-07-25T10:00:00.000000Z"
+    }
+}
+                    </div>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <button class="btn btn-primary" onclick="testEndpoint('GET', '/auth/profile', null, 'profile-response', true)">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="profile-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Update Profile Endpoint -->
+            <div id="update-profile" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('update-profile')">
+                    <span class="method-badge method-put">PUT</span>
+                    <strong>/auth/profile</strong> - بروزرسانی پروفایل
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="update-profile-content">
+                    <p>بروزرسانی اطلاعات پروفایل کاربر</p>
+                    
+                    <h6 class="mt-3">هدرهای مورد نیاز:</h6>
+                    <div class="code-block">
+Authorization: Bearer {token}
+                    </div>
+
+                    <h6 class="mt-3">پارامترهای ورودی:</h6>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>نام پارامتر</th>
+                                <th>نوع</th>
+                                <th>توضیحات</th>
+                                <th>الزامی</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>name</td>
+                                <td>string</td>
+                                <td>نام و نام خانوادگی</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>phone</td>
+                                <td>string</td>
+                                <td>شماره موبایل</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>national_id</td>
+                                <td>string</td>
+                                <td>کد ملی</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>bank_account</td>
+                                <td>string</td>
+                                <td>شماره حساب بانکی</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>bank_name</td>
+                                <td>string</td>
+                                <td>نام بانک</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <textarea class="form-control mb-3" id="update-profile-body" rows="6" dir="ltr">{
+    "name": "نام جدید",
+    "phone": "09987654321",
+    "bank_account": "987-654-321",
+    "bank_name": "بانک جدید"
+}</textarea>
+                        <button class="btn btn-primary" onclick="testEndpoint('PUT', '/auth/profile', 'update-profile-body', 'update-profile-response', true)">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="update-profile-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Change Password Endpoint -->
+            <div id="change-password" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('change-password')">
+                    <span class="method-badge method-put">PUT</span>
+                    <strong>/auth/change-password</strong> - تغییر رمز عبور
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="change-password-content">
+                    <p>تغییر رمز عبور کاربر</p>
+                    
+                    <h6 class="mt-3">هدرهای مورد نیاز:</h6>
+                    <div class="code-block">
+Authorization: Bearer {token}
+                    </div>
+
+                    <h6 class="mt-3">پارامترهای ورودی:</h6>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>نام پارامتر</th>
+                                <th>نوع</th>
+                                <th>توضیحات</th>
+                                <th>الزامی</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>current_password</td>
+                                <td>string</td>
+                                <td>رمز عبور فعلی</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>new_password</td>
+                                <td>string</td>
+                                <td>رمز عبور جدید (حداقل 8 کاراکتر)</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>new_password_confirmation</td>
+                                <td>string</td>
+                                <td>تکرار رمز عبور جدید</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <textarea class="form-control mb-3" id="change-password-body" rows="5" dir="ltr">{
+    "current_password": "password",
+    "new_password": "newpassword123",
+    "new_password_confirmation": "newpassword123"
+}</textarea>
+                        <button class="btn btn-primary" onclick="testEndpoint('PUT', '/auth/change-password', 'change-password-body', 'change-password-response', true)">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="change-password-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logout Endpoint -->
+            <div id="logout" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('logout')">
+                    <span class="method-badge method-post">POST</span>
+                    <strong>/auth/logout</strong> - خروج از سیستم
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="logout-content">
+                    <p>خروج از سیستم و حذف توکن فعلی</p>
+                    
+                    <h6 class="mt-3">هدرهای مورد نیاز:</h6>
+                    <div class="code-block">
+Authorization: Bearer {token}
+                    </div>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <button class="btn btn-primary" onclick="testEndpoint('POST', '/auth/logout', null, 'logout-response', true)">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="logout-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logout All Endpoint -->
+            <div id="logout-all" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('logout-all')">
+                    <span class="method-badge method-post">POST</span>
+                    <strong>/auth/logout-all</strong> - خروج از همه دستگاه‌ها
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="logout-all-content">
+                    <p>خروج از سیستم در همه دستگاه‌ها و حذف تمام توکن‌ها</p>
+                    
+                    <h6 class="mt-3">هدرهای مورد نیاز:</h6>
+                    <div class="code-block">
+Authorization: Bearer {token}
+                    </div>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <button class="btn btn-primary" onclick="testEndpoint('POST', '/auth/logout-all', null, 'logout-all-response', true)">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="logout-all-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Currencies Section -->
+            <h2 class="category-title">ارزها</h2>
+            
+            <!-- Currencies List Endpoint -->
+            <div id="currencies-list" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('currencies-list')">
+                    <span class="method-badge method-get">GET</span>
+                    <strong>/currencies</strong> - لیست ارزها
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="currencies-list-content">
+                    <p>دریافت لیست تمام ارزهای موجود در صرافی</p>
+                    
+                    <h6 class="mt-3">پارامترهای Query:</h6>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>نام پارامتر</th>
+                                <th>نوع</th>
+                                <th>توضیحات</th>
+                                <th>الزامی</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>active</td>
+                                <td>boolean</td>
+                                <td>فیلتر بر اساس وضعیت فعال (1/0)</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>tradeable</td>
+                                <td>boolean</td>
+                                <td>فیلتر بر اساس قابلیت معامله (1/0)</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>search</td>
+                                <td>string</td>
+                                <td>جستجو در نماد یا نام ارز</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h6 class="mt-3">نمونه پاسخ:</h6>
+                    <div class="code-block">
+{
+    "success": true,
+    "data": {
+        "data": [
+            {
+                "id": 1,
+                "symbol": "IRR",
+                "name": "ریال ایران",
+                "description": "واحد پول رسمی ایران",
+                "buy_price": "1.00000000",
+                "sell_price": "1.00000000",
+                "buy_commission": "0.00",
+                "sell_commission": "0.00",
+                "is_active": true,
+                "is_tradeable": false
+            },
+            {
+                "id": 2,
+                "symbol": "BTC",
+                "name": "بیت کوین",
+                "description": "Bitcoin - اولین رمزارز",
+                "buy_price": "4350000000.00000000",
+                "sell_price": "4320000000.00000000",
+                "buy_commission": "0.50",
+                "sell_commission": "0.50",
+                "is_active": true,
+                "is_tradeable": true
+            }
+        ]
+    }
+}
+                    </div>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label>فقط فعال‌ها:</label>
+                                <select class="form-control" id="currencies-active">
+                                    <option value="">همه</option>
+                                    <option value="1">فعال</option>
+                                    <option value="0">غیرفعال</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label>قابل معامله:</label>
+                                <select class="form-control" id="currencies-tradeable">
+                                    <option value="">همه</option>
+                                    <option value="1">بله</option>
+                                    <option value="0">خیر</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label>جستجو:</label>
+                                <input type="text" class="form-control" id="currencies-search" placeholder="BTC">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="testCurrenciesEndpoint()">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="currencies-list-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Currency Detail Endpoint -->
+            <div id="currency-detail" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('currency-detail')">
+                    <span class="method-badge method-get">GET</span>
+                    <strong>/currencies/{id}</strong> - جزئیات ارز
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="currency-detail-content">
+                    <p>دریافت اطلاعات کامل یک ارز خاص</p>
+                    
+                    <h6 class="mt-3">پارامترهای مسیر:</h6>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>نام پارامتر</th>
+                                <th>نوع</th>
+                                <th>توضیحات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>id</td>
+                                <td>integer</td>
+                                <td>شناسه ارز</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label>شناسه ارز:</label>
+                                <input type="number" class="form-control" id="currency-id" value="2">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="testCurrencyDetail()">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="currency-detail-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trading Currencies Endpoint -->
+            <div id="trading-currencies" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('trading-currencies')">
+                    <span class="method-badge method-get">GET</span>
+                    <strong>/currencies/trading</strong> - ارزهای قابل معامله
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="trading-currencies-content">
+                    <p>دریافت لیست ارزهای فعال و قابل معامله</p>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <button class="btn btn-primary" onclick="testEndpoint('GET', '/currencies/trading', null, 'trading-currencies-response', false)">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="trading-currencies-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wallets Section -->
+            <h2 class="category-title">کیف پول</h2>
+            
+            <!-- Wallets List Endpoint -->
+            <div id="wallets" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('wallets')">
+                    <span class="method-badge method-get">GET</span>
+                    <strong>/wallets</strong> - لیست کیف پول‌ها
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="wallets-content">
+                    <p>دریافت لیست کیف پول‌های کاربر</p>
+                    
+                    <h6 class="mt-3">هدرهای مورد نیاز:</h6>
+                    <div class="code-block">
+Authorization: Bearer {token}
+                    </div>
+
+                    <h6 class="mt-3">نمونه پاسخ:</h6>
+                    <div class="code-block">
+{
+    "success": true,
+    "data": [
+        {
+            "id": 1,
+            "currency_id": 1,
+            "balance": "50000000.00000000",
+            "frozen_balance": "0.00000000",
+            "currency": {
+                "id": 1,
+                "symbol": "IRR",
+                "name": "ریال ایران"
+            }
+        },
+        {
+            "id": 2,
+            "currency_id": 2,
+            "balance": "0.00100000",
+            "frozen_balance": "0.00000000",
+            "currency": {
+                "id": 2,
+                "symbol": "BTC",
+                "name": "بیت کوین"
+            }
+        }
+    ]
+}
+                    </div>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <button class="btn btn-primary" onclick="testEndpoint('GET', '/wallets', null, 'wallets-response', true)">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="wallets-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deposit Endpoint -->
+            <div id="deposit" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('deposit')">
+                    <span class="method-badge method-post">POST</span>
+                    <strong>/wallets/deposit</strong> - واریز ارز دیجیتال
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="deposit-content">
+                    <p>واریز ارز دیجیتال به کیف پول</p>
+                    
+                    <h6 class="mt-3">پارامترهای ورودی:</h6>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>نام پارامتر</th>
+                                <th>نوع</th>
+                                <th>توضیحات</th>
+                                <th>الزامی</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>currency_id</td>
+                                <td>integer</td>
+                                <td>شناسه ارز</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>amount</td>
+                                <td>decimal</td>
+                                <td>مقدار واریز</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>tx_hash</td>
+                                <td>string</td>
+                                <td>شناسه تراکنش بلاکچین</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>from_address</td>
+                                <td>string</td>
+                                <td>آدرس فرستنده</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h6 class="mt-3">نمونه درخواست:</h6>
+                    <div class="code-block">
+{
+    "currency_id": 2,
+    "amount": "0.001",
+    "tx_hash": "abc123def456...",
+    "from_address": "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2"
+}
+                    </div>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <textarea class="form-control mb-3" id="deposit-body" rows="6" dir="ltr">{
+    "currency_id": 2,
+    "amount": "0.001",
+    "tx_hash": "abc123def456...",
+    "from_address": "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2"
+}</textarea>
+                        <button class="btn btn-primary" onclick="testEndpoint('POST', '/wallets/deposit', 'deposit-body', 'deposit-response', true)">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="deposit-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Withdraw Endpoint -->
+            <div id="withdraw" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('withdraw')">
+                    <span class="method-badge method-post">POST</span>
+                    <strong>/wallets/withdraw</strong> - برداشت ارز دیجیتال
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="withdraw-content">
+                    <p>برداشت ارز دیجیتال از کیف پول</p>
+                    
+                    <h6 class="mt-3">پارامترهای ورودی:</h6>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>نام پارامتر</th>
+                                <th>نوع</th>
+                                <th>توضیحات</th>
+                                <th>الزامی</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>currency_id</td>
+                                <td>integer</td>
+                                <td>شناسه ارز</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>amount</td>
+                                <td>decimal</td>
+                                <td>مقدار برداشت</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>to_address</td>
+                                <td>string</td>
+                                <td>آدرس مقصد</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <textarea class="form-control mb-3" id="withdraw-body" rows="5" dir="ltr">{
+    "currency_id": 2,
+    "amount": "0.0005",
+    "to_address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+}</textarea>
+                        <button class="btn btn-primary" onclick="testEndpoint('POST', '/wallets/withdraw', 'withdraw-body', 'withdraw-response', true)">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="withdraw-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Section -->
+            <h2 class="category-title">سفارشات</h2>
+            
+            <!-- Buy Order Endpoint -->
+            <div id="buy-order" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('buy-order')">
+                    <span class="method-badge method-post">POST</span>
+                    <strong>/orders/buy</strong> - خرید ارز دیجیتال
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="buy-order-content">
+                    <p>ایجاد سفارش خرید ارز دیجیتال</p>
+                    
+                    <h6 class="mt-3">پارامترهای ورودی:</h6>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>نام پارامتر</th>
+                                <th>نوع</th>
+                                <th>توضیحات</th>
+                                <th>الزامی</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>currency_id</td>
+                                <td>integer</td>
+                                <td>شناسه ارز مورد نظر برای خرید</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>amount</td>
+                                <td>decimal</td>
+                                <td>مقدار ارز برای خرید</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>discount_code</td>
+                                <td>string</td>
+                                <td>کد تخفیف</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h6 class="mt-3">نمونه درخواست:</h6>
+                    <div class="code-block">
+{
+    "currency_id": 2,
+    "amount": "0.001",
+    "discount_code": "SAVE10"
+}
+                    </div>
+
+                    <h6 class="mt-3">نمونه پاسخ:</h6>
+                    <div class="code-block">
+{
+    "success": true,
+    "message": "Buy order created successfully",
+    "data": {
+        "id": 1,
+        "type": "buy",
+        "from_currency": {
+            "id": 1,
+            "symbol": "IRR",
+            "name": "ریال ایران"
+        },
+        "to_currency": {
+            "id": 2,
+            "symbol": "BTC",
+            "name": "بیت کوین"
+        },
+        "from_amount": "4345500.00000000",
+        "to_amount": "0.00100000",
+        "exchange_rate": "4345500000.00000000",
+        "commission": "21750.00000000",
+        "discount_amount": "2175.00000000",
+        "total_amount": "4365075.00000000",
+        "status": "pending",
+        "created_at": "2025-07-25T10:30:00.000000Z"
+    }
+}
+                    </div>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <textarea class="form-control mb-3" id="buy-order-body" rows="5" dir="ltr">{
+    "currency_id": 2,
+    "amount": "0.001",
+    "discount_code": ""
+}</textarea>
+                        <button class="btn btn-primary" onclick="testEndpoint('POST', '/orders/buy', 'buy-order-body', 'buy-order-response', true)">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="buy-order-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sell Order Endpoint -->
+            <div id="sell-order" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('sell-order')">
+                    <span class="method-badge method-post">POST</span>
+                    <strong>/orders/sell</strong> - فروش ارز دیجیتال
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="sell-order-content">
+                    <p>ایجاد سفارش فروش ارز دیجیتال</p>
+                    
+                    <h6 class="mt-3">پارامترهای ورودی:</h6>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>نام پارامتر</th>
+                                <th>نوع</th>
+                                <th>توضیحات</th>
+                                <th>الزامی</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>currency_id</td>
+                                <td>integer</td>
+                                <td>شناسه ارز مورد نظر برای فروش</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>amount</td>
+                                <td>decimal</td>
+                                <td>مقدار ارز برای فروش</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>discount_code</td>
+                                <td>string</td>
+                                <td>کد تخفیف</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h6 class="mt-3">نمونه درخواست:</h6>
+                    <div class="code-block">
+{
+    "currency_id": 2,
+    "amount": "0.001",
+    "discount_code": "SAVE10"
+}
+                    </div>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <textarea class="form-control mb-3" id="sell-order-body" rows="5" dir="ltr">{
+    "currency_id": 2,
+    "amount": "0.0005",
+    "discount_code": ""
+}</textarea>
+                        <button class="btn btn-primary" onclick="testEndpoint('POST', '/orders/sell', 'sell-order-body', 'sell-order-response', true)">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="sell-order-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exchange Order Endpoint -->
+            <div id="exchange-order" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('exchange-order')">
+                    <span class="method-badge method-post">POST</span>
+                    <strong>/orders/exchange</strong> - تبدیل ارز
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="exchange-order-content">
+                    <p>تبدیل مستقیم یک ارز به ارز دیگر</p>
+                    
+                    <h6 class="mt-3">پارامترهای ورودی:</h6>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>نام پارامتر</th>
+                                <th>نوع</th>
+                                <th>توضیحات</th>
+                                <th>الزامی</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>from_currency_id</td>
+                                <td>integer</td>
+                                <td>شناسه ارز مبدا</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>to_currency_id</td>
+                                <td>integer</td>
+                                <td>شناسه ارز مقصد</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>amount</td>
+                                <td>decimal</td>
+                                <td>مقدار ارز مبدا</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <textarea class="form-control mb-3" id="exchange-order-body" rows="5" dir="ltr">{
+    "from_currency_id": 2,
+    "to_currency_id": 3,
+    "amount": "0.001"
+}</textarea>
+                        <button class="btn btn-primary" onclick="testEndpoint('POST', '/orders/exchange', 'exchange-order-body', 'exchange-order-response', true)">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="exchange-order-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quote Endpoint -->
+            <div id="quote" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('quote')">
+                    <span class="method-badge method-post">POST</span>
+                    <strong>/orders/quote</strong> - استعلام قیمت
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="quote-content">
+                    <p>استعلام قیمت قبل از ایجاد سفارش</p>
+                    
+                    <h6 class="mt-3">پارامترهای ورودی:</h6>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>نام پارامتر</th>
+                                <th>نوع</th>
+                                <th>توضیحات</th>
+                                <th>الزامی</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>type</td>
+                                <td>string</td>
+                                <td>نوع سفارش (buy/sell/exchange)</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>to_currency_id</td>
+                                <td>integer</td>
+                                <td>شناسه ارز مقصد (برای خرید)</td>
+                                <td><span class="optional-badge">شرطی</span></td>
+                            </tr>
+                            <tr>
+                                <td>from_currency_id</td>
+                                <td>integer</td>
+                                <td>شناسه ارز مبدا (برای فروش یا تبدیل)</td>
+                                <td><span class="optional-badge">شرطی</span></td>
+                            </tr>
+                            <tr>
+                                <td>amount</td>
+                                <td>decimal</td>
+                                <td>مقدار</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>discount_code</td>
+                                <td>string</td>
+                                <td>کد تخفیف</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h6 class="mt-3">نمونه درخواست (خرید):</h6>
+                    <div class="code-block">
+{
+    "type": "buy",
+    "to_currency_id": 2,
+    "amount": "0.001",
+    "discount_code": "SAVE10"
+}
+                    </div>
+
+                    <h6 class="mt-3">نمونه پاسخ:</h6>
+                    <div class="code-block">
+{
+    "success": true,
+    "data": {
+        "from_currency": "IRR",
+        "to_currency": "BTC",
+        "amount": "0.001",
+        "exchange_rate": "4350000000.00000000",
+        "subtotal": "4350000.00000000",
+        "commission": "21750.00000000",
+        "commission_rate": "0.50%",
+        "discount": "2175.00000000",
+        "discount_rate": "10%",
+        "total": "4369575.00000000"
+    }
+}
+                    </div>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <textarea class="form-control mb-3" id="quote-body" rows="6" dir="ltr">{
+    "type": "buy",
+    "to_currency_id": 2,
+    "amount": "0.001",
+    "discount_code": ""
+}</textarea>
+                        <button class="btn btn-primary" onclick="testEndpoint('POST', '/orders/quote', 'quote-body', 'quote-response', true)">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="quote-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Section -->
+            <h2 class="category-title">تراکنش‌ها</h2>
+            
+            <!-- Transactions List Endpoint -->
+            <div id="transactions" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('transactions')">
+                    <span class="method-badge method-get">GET</span>
+                    <strong>/transactions</strong> - لیست تراکنش‌ها
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="transactions-content">
+                    <p>دریافت لیست تراکنش‌های کاربر</p>
+                    
+                    <h6 class="mt-3">پارامترهای Query:</h6>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>نام پارامتر</th>
+                                <th>نوع</th>
+                                <th>توضیحات</th>
+                                <th>الزامی</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>type</td>
+                                <td>string</td>
+                                <td>نوع تراکنش (buy/sell/deposit/withdraw/transfer)</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>status</td>
+                                <td>string</td>
+                                <td>وضعیت (pending/completed/failed)</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>currency_id</td>
+                                <td>integer</td>
+                                <td>فیلتر بر اساس ارز</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>from_date</td>
+                                <td>date</td>
+                                <td>تاریخ شروع</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>to_date</td>
+                                <td>date</td>
+                                <td>تاریخ پایان</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>page</td>
+                                <td>integer</td>
+                                <td>شماره صفحه</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>per_page</td>
+                                <td>integer</td>
+                                <td>تعداد در هر صفحه</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h6 class="mt-3">نمونه پاسخ:</h6>
+                    <div class="code-block">
+{
+    "success": true,
+    "data": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 1,
+                "type": "buy",
+                "currency": {
+                    "id": 2,
+                    "symbol": "BTC",
+                    "name": "بیت کوین"
+                },
+                "amount": "0.00100000",
+                "fee": "0.00000500",
+                "total": "0.00100500",
+                "status": "completed",
+                "description": "خرید بیت کوین",
+                "created_at": "2025-07-25T10:00:00.000000Z"
+            }
+        ],
+        "total": 25,
+        "per_page": 20,
+        "last_page": 2
+    }
+}
+                    </div>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label>نوع:</label>
+                                <select class="form-control" id="transactions-type">
+                                    <option value="">همه</option>
+                                    <option value="buy">خرید</option>
+                                    <option value="sell">فروش</option>
+                                    <option value="deposit">واریز</option>
+                                    <option value="withdraw">برداشت</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label>وضعیت:</label>
+                                <select class="form-control" id="transactions-status">
+                                    <option value="">همه</option>
+                                    <option value="pending">در انتظار</option>
+                                    <option value="completed">تکمیل شده</option>
+                                    <option value="failed">ناموفق</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label>از تاریخ:</label>
+                                <input type="date" class="form-control" id="transactions-from-date">
+                            </div>
+                            <div class="col-md-3">
+                                <label>تا تاریخ:</label>
+                                <input type="date" class="form-control" id="transactions-to-date">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="testTransactionsEndpoint()">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="transactions-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Discount Section -->
+            <h2 class="category-title">تخفیف‌ها</h2>
+
+            <!-- Discounts List Endpoint -->
+            <div id="discounts" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('discounts')">
+                    <span class="method-badge method-get">GET</span>
+                    <strong>/discounts</strong> - لیست تخفیف‌های فعال
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="discounts-content">
+                    <p>دریافت لیست تخفیف‌های فعال و قابل استفاده برای کاربر</p>
+                    
+                    <h6 class="mt-3">پارامترهای Query:</h6>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>پارامتر</th>
+                                <th>نوع</th>
+                                <th>الزامی</th>
+                                <th>توضیحات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>currency_id</td>
+                                <td>integer</td>
+                                <td>خیر</td>
+                                <td>فیلتر بر اساس ارز</td>
+                            </tr>
+                            <tr>
+                                <td>per_page</td>
+                                <td>integer</td>
+                                <td>خیر</td>
+                                <td>تعداد در هر صفحه</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h6 class="mt-3">نمونه پاسخ:</h6>
+                    <pre class="response-sample">{
+    "success": true,
+    "data": {
+        "data": [
+            {
+                "id": 1,
+                "code": "WELCOME10",
+                "title": "تخفیف خوش آمدگویی",
+                "description": "10 درصد تخفیف",
+                "type": "percentage",
+                "value": 10,
+                "min_order_amount": "1000000",
+                "max_discount_amount": "500000",
+                "currency_id": null,
+                "expires_at": "2024-12-31 23:59:59"
+            }
+        ]
+    }
+}</pre>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <div class="mb-3">
+                            <label>Currency ID:</label>
+                            <input type="number" class="form-control" id="discounts-currency" placeholder="اختیاری">
+                        </div>
+                        <button class="btn btn-primary" onclick="testDiscountsEndpoint()">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="discounts-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Validate Discount Endpoint -->
+            <div id="discount-validate" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('discount-validate')">
+                    <span class="method-badge method-post">POST</span>
+                    <strong>/discounts/validate</strong> - اعتبارسنجی کد تخفیف
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="discount-validate-content">
+                    <p>بررسی اعتبار کد تخفیف و محاسبه میزان تخفیف</p>
+                    
+                    <h6 class="mt-3">پارامترهای Body:</h6>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>پارامتر</th>
+                                <th>نوع</th>
+                                <th>الزامی</th>
+                                <th>توضیحات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>code</td>
+                                <td>string</td>
+                                <td>بله</td>
+                                <td>کد تخفیف</td>
+                            </tr>
+                            <tr>
+                                <td>amount</td>
+                                <td>numeric</td>
+                                <td>بله</td>
+                                <td>مبلغ سفارش</td>
+                            </tr>
+                            <tr>
+                                <td>currency_id</td>
+                                <td>integer</td>
+                                <td>خیر</td>
+                                <td>شناسه ارز</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h6 class="mt-3">نمونه درخواست:</h6>
+                    <pre class="response-sample">{
+    "code": "WELCOME10",
+    "amount": 5000000,
+    "currency_id": 2
+}</pre>
+
+                    <h6 class="mt-3">نمونه پاسخ:</h6>
+                    <pre class="response-sample">{
+    "success": true,
+    "data": {
+        "discount_id": 1,
+        "code": "WELCOME10",
+        "title": "تخفیف خوش آمدگویی",
+        "type": "percentage",
+        "value": 10,
+        "discount_amount": 500000,
+        "final_amount": 4500000,
+        "original_amount": 5000000
+    }
+}</pre>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <div class="mb-3">
+                            <label>کد تخفیف:</label>
+                            <input type="text" class="form-control" id="validate-code" placeholder="WELCOME10">
+                        </div>
+                        <div class="mb-3">
+                            <label>مبلغ:</label>
+                            <input type="number" class="form-control" id="validate-amount" placeholder="5000000">
+                        </div>
+                        <div class="mb-3">
+                            <label>Currency ID:</label>
+                            <input type="number" class="form-control" id="validate-currency" placeholder="اختیاری">
+                        </div>
+                        <button class="btn btn-primary" onclick="testValidateDiscountEndpoint()">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="discount-validate-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Discount Usage Endpoint -->
+            <div id="discount-usage" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('discount-usage')">
+                    <span class="method-badge method-get">GET</span>
+                    <strong>/discounts/my-usage</strong> - تاریخچه استفاده از تخفیف‌ها
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="discount-usage-content">
+                    <p>دریافت تاریخچه استفاده کاربر از کدهای تخفیف</p>
+                    
+                    <h6 class="mt-3">نمونه پاسخ:</h6>
+                    <pre class="response-sample">{
+    "success": true,
+    "data": {
+        "data": [
+            {
+                "id": 1,
+                "discount": {
+                    "id": 1,
+                    "code": "WELCOME10",
+                    "title": "تخفیف خوش آمدگویی",
+                    "type": "percentage",
+                    "value": 10
+                },
+                "order": {
+                    "id": 5,
+                    "type": "buy",
+                    "from_amount": "5000000",
+                    "to_amount": "0.001",
+                    "created_at": "2024-01-15 10:30:00"
+                },
+                "discount_amount": "500000",
+                "created_at": "2024-01-15 10:30:00"
+            }
+        ]
+    }
+}</pre>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <button class="btn btn-primary" onclick="testDiscountUsageEndpoint()">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="discount-usage-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Section -->
+            <h2 class="category-title">پنل مدیریت</h2>
+            
+            <!-- Admin Dashboard Endpoint -->
+            <div id="admin-dashboard" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('admin-dashboard')">
+                    <span class="method-badge method-get">GET</span>
+                    <strong>/admin/dashboard</strong> - داشبورد مدیریت
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="admin-dashboard-content">
+                    <p>دریافت آمار کلی و اطلاعات داشبورد مدیریت</p>
+                    
+                    <h6 class="mt-3">هدرهای مورد نیاز:</h6>
+                    <div class="code-block">
+Authorization: Bearer {admin_token}
+                    </div>
+
+                    <h6 class="mt-3">نمونه پاسخ:</h6>
+                    <div class="code-block">
+{
+    "success": true,
+    "data": {
+        "total_users": 125,
+        "active_users": 120,
+        "total_orders": 450,
+        "pending_orders": 5,
+        "total_transactions": 890,
+        "revenue": {
+            "today": "1250000.00",
+            "this_week": "8500000.00",
+            "this_month": "35000000.00"
+        },
+        "popular_currencies": [
+            {
+                "symbol": "BTC",
+                "name": "بیت کوین",
+                "orders_count": 234
+            },
+            {
+                "symbol": "ETH",
+                "name": "اتریوم",
+                "orders_count": 189
+            }
+        ],
+        "recent_activities": [
+            {
+                "type": "new_order",
+                "user": "علی رضایی",
+                "description": "سفارش خرید 0.001 BTC",
+                "time": "5 دقیقه پیش"
+            }
+        ]
+    }
+}
+                    </div>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <button class="btn btn-primary" onclick="testEndpoint('GET', '/admin/dashboard', null, 'admin-dashboard-response', true)">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="admin-dashboard-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Users Endpoint -->
+            <div id="admin-users" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('admin-users')">
+                    <span class="method-badge method-get">GET</span>
+                    <strong>/admin/users</strong> - لیست کاربران
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="admin-users-content">
+                    <p>دریافت لیست کاربران سیستم برای مدیران</p>
+                    
+                    <h6 class="mt-3">پارامترهای Query:</h6>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>نام پارامتر</th>
+                                <th>نوع</th>
+                                <th>توضیحات</th>
+                                <th>الزامی</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>search</td>
+                                <td>string</td>
+                                <td>جستجو در نام یا ایمیل</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>active</td>
+                                <td>boolean</td>
+                                <td>فیلتر وضعیت فعال</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>role</td>
+                                <td>string</td>
+                                <td>فیلتر نقش (user/admin)</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h6 class="mt-3">نمونه پاسخ:</h6>
+                    <div class="code-block">
+{
+    "success": true,
+    "data": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 1,
+                "name": "علی رضایی",
+                "email": "ali@example.com",
+                "phone": "09123456789",
+                "role": "user",
+                "is_active": true,
+                "total_orders": 15,
+                "total_transactions": 28,
+                "wallet_balance": {
+                    "IRR": "50000000.00",
+                    "BTC": "0.00150000"
+                },
+                "created_at": "2025-07-20T10:00:00.000000Z"
+            }
+        ],
+        "total": 125,
+        "per_page": 20
+    }
+}
+                    </div>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <button class="btn btn-primary" onclick="testEndpoint('GET', '/admin/users', null, 'admin-users-response', true)">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="admin-users-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Create Currency -->
+            <div id="admin-currencies" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('admin-currencies')">
+                    <span class="method-badge method-post">POST</span>
+                    <strong>/admin/currencies</strong> - ایجاد ارز جدید
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="admin-currencies-content">
+                    <p>ایجاد ارز جدید در سیستم</p>
+                    
+                    <h6 class="mt-3">پارامترهای ورودی (multipart/form-data):</h6>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>نام پارامتر</th>
+                                <th>نوع</th>
+                                <th>توضیحات</th>
+                                <th>الزامی</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>symbol</td>
+                                <td>string</td>
+                                <td>نماد ارز (مثل BTC)</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>name</td>
+                                <td>string</td>
+                                <td>نام کامل ارز</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>description</td>
+                                <td>string</td>
+                                <td>توضیحات</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>buy_price</td>
+                                <td>decimal</td>
+                                <td>قیمت خرید</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>sell_price</td>
+                                <td>decimal</td>
+                                <td>قیمت فروش</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>buy_commission</td>
+                                <td>decimal</td>
+                                <td>کارمزد خرید (درصد)</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>sell_commission</td>
+                                <td>decimal</td>
+                                <td>کارمزد فروش (درصد)</td>
+                                <td><span class="required-badge">الزامی</span></td>
+                            </tr>
+                            <tr>
+                                <td>treasury_balance</td>
+                                <td>decimal</td>
+                                <td>موجودی خزانه</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>decimal_places</td>
+                                <td>integer</td>
+                                <td>تعداد اعشار</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                            <tr>
+                                <td>image</td>
+                                <td>file</td>
+                                <td>تصویر لوگو</td>
+                                <td><span class="optional-badge">اختیاری</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h6 class="mt-3">نمونه درخواست:</h6>
+                    <div class="code-block">
+{
+    "symbol": "XRP",
+    "name": "ریپل",
+    "description": "XRP - پروتکل پرداخت دیجیتال",
+    "buy_price": "35000",
+    "sell_price": "34500",
+    "buy_commission": "0.3",
+    "sell_commission": "0.3",
+    "treasury_balance": "10000",
+    "decimal_places": "6"
+}
+                    </div>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <textarea class="form-control mb-3" id="admin-currencies-body" rows="12" dir="ltr">{
+    "symbol": "XRP",
+    "name": "ریپل",
+    "description": "XRP - پروتکل پرداخت دیجیتال",
+    "buy_price": "35000",
+    "sell_price": "34500",
+    "buy_commission": "0.3",
+    "sell_commission": "0.3",
+    "treasury_balance": "10000",
+    "decimal_places": "6"
+}</textarea>
+                        <button class="btn btn-primary" onclick="testEndpoint('POST', '/admin/currencies', 'admin-currencies-body', 'admin-currencies-response', true)">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="admin-currencies-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Discounts Section -->
+            <h3 class="mt-4">مدیریت تخفیف‌ها</h3>
+            
+            <!-- List All Discounts -->
+            <div id="admin-discounts" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('admin-discounts-list')">
+                    <span class="method-badge method-get">GET</span>
+                    <strong>/admin/discounts</strong> - لیست همه تخفیف‌ها
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="admin-discounts-list-content">
+                    <p>دریافت لیست تمام تخفیف‌ها با قابلیت فیلتر و جستجو</p>
+                    
+                    <h6 class="mt-3">پارامترهای Query:</h6>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>پارامتر</th>
+                                <th>نوع</th>
+                                <th>توضیحات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>status</td>
+                                <td>string</td>
+                                <td>active, inactive, expired</td>
+                            </tr>
+                            <tr>
+                                <td>type</td>
+                                <td>string</td>
+                                <td>percentage, fixed</td>
+                            </tr>
+                            <tr>
+                                <td>search</td>
+                                <td>string</td>
+                                <td>جستجو در کد، عنوان و توضیحات</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <div class="mb-3">
+                            <label>وضعیت:</label>
+                            <select class="form-control" id="admin-discounts-status">
+                                <option value="">همه</option>
+                                <option value="active">فعال</option>
+                                <option value="inactive">غیرفعال</option>
+                                <option value="expired">منقضی شده</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>جستجو:</label>
+                            <input type="text" class="form-control" id="admin-discounts-search" placeholder="کد یا عنوان">
+                        </div>
+                        <button class="btn btn-primary" onclick="testAdminDiscountsListEndpoint()">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="admin-discounts-list-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Discount -->
+            <div id="admin-discount-create" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('admin-discount-create')">
+                    <span class="method-badge method-post">POST</span>
+                    <strong>/admin/discounts</strong> - ایجاد تخفیف جدید
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="admin-discount-create-content">
+                    <p>ایجاد کد تخفیف جدید</p>
+                    
+                    <h6 class="mt-3">نمونه درخواست:</h6>
+                    <pre class="response-sample">{
+    "code": "SAVE20",
+    "title": "تخفیف 20 درصدی",
+    "description": "تخفیف ویژه",
+    "type": "percentage",
+    "value": 20,
+    "currency_id": null,
+    "user_id": null,
+    "min_order_amount": 1000000,
+    "max_discount_amount": 500000,
+    "usage_limit": 100,
+    "user_usage_limit": 2,
+    "expires_at": "2024-12-31 23:59:59",
+    "is_active": true
+}</pre>
+
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <textarea class="form-control mb-3" id="admin-discount-create-body" rows="15" dir="ltr">{
+    "code": "SAVE20",
+    "title": "تخفیف 20 درصدی",
+    "description": "تخفیف ویژه عید",
+    "type": "percentage",
+    "value": 20,
+    "min_order_amount": 1000000,
+    "max_discount_amount": 500000,
+    "usage_limit": 100,
+    "user_usage_limit": 2,
+    "expires_at": "2024-12-31 23:59:59",
+    "is_active": true
+}</textarea>
+                        <button class="btn btn-primary" onclick="testEndpoint('POST', '/admin/discounts', 'admin-discount-create-body', 'admin-discount-create-response', true)">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="admin-discount-create-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Update Discount -->
+            <div id="admin-discount-update" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('admin-discount-update')">
+                    <span class="method-badge method-put">PUT</span>
+                    <strong>/admin/discounts/{id}</strong> - بروزرسانی تخفیف
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="admin-discount-update-content">
+                    <p>بروزرسانی اطلاعات تخفیف موجود</p>
+                    
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <div class="mb-3">
+                            <label>شناسه تخفیف:</label>
+                            <input type="number" class="form-control" id="admin-discount-update-id" placeholder="1">
+                        </div>
+                        <textarea class="form-control mb-3" id="admin-discount-update-body" rows="8" dir="ltr">{
+    "value": 25,
+    "usage_limit": 200,
+    "expires_at": "2025-01-31 23:59:59",
+    "is_active": true
+}</textarea>
+                        <button class="btn btn-primary" onclick="testAdminDiscountUpdate()">
+                            <i class="fas fa-play"></i> ارسال درخواست
+                        </button>
+                        <div class="response-area" id="admin-discount-update-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Discount -->
+            <div id="admin-discount-delete" class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint('admin-discount-delete')">
+                    <span class="method-badge method-delete">DELETE</span>
+                    <strong>/admin/discounts/{id}</strong> - حذف تخفیف
+                    <i class="fas fa-chevron-down float-start"></i>
+                </div>
+                <div class="endpoint-content" id="admin-discount-delete-content">
+                    <p>حذف کامل یک تخفیف از سیستم</p>
+                    
+                    <div class="test-area">
+                        <h6>تست API:</h6>
+                        <div class="mb-3">
+                            <label>شناسه تخفیف:</label>
+                            <input type="number" class="form-control" id="admin-discount-delete-id" placeholder="1">
+                        </div>
+                        <button class="btn btn-danger" onclick="testAdminDiscountDelete()">
+                            <i class="fas fa-trash"></i> حذف تخفیف
+                        </button>
+                        <div class="response-area" id="admin-discount-delete-response">پاسخ اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Toggle endpoint content
+        function toggleEndpoint(id) {
+            const content = document.getElementById(id + '-content');
+            const card = document.getElementById(id);
+            const icon = card.querySelector('.fa-chevron-down');
+            
+            content.classList.toggle('show');
+            
+            if (content.classList.contains('show')) {
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        }
+
+        // Test API endpoint
+        async function testEndpoint(method, endpoint, bodyId, responseId, requiresAuth) {
+            const baseUrl = document.getElementById('baseUrl').value;
+            const authToken = document.getElementById('authToken').value;
+            const responseArea = document.getElementById(responseId);
+            
+            // Show loading
+            responseArea.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال ارسال درخواست...';
+            
+            try {
+                const headers = {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                };
+                
+                if (requiresAuth && authToken) {
+                    headers['Authorization'] = authToken.startsWith('Bearer ') ? authToken : `Bearer ${authToken}`;
+                }
+                
+                const options = {
+                    method: method,
+                    headers: headers
+                };
+                
+                if (bodyId && method !== 'GET') {
+                    const bodyElement = document.getElementById(bodyId);
+                    if (bodyElement) {
+                        options.body = bodyElement.value;
+                    }
+                }
+                
+                const response = await fetch(baseUrl + endpoint, options);
+                const data = await response.json();
+                
+                // Format and display response
+                responseArea.innerHTML = JSON.stringify(data, null, 2);
+                
+                // Add status code color
+                if (response.ok) {
+                    responseArea.style.borderLeft = '5px solid #28a745';
+                } else {
+                    responseArea.style.borderLeft = '5px solid #dc3545';
+                }
+                
+                // Add status info
+                const statusInfo = `<div style="color: #888; margin-bottom: 10px;">Status: ${response.status} ${response.statusText}</div>`;
+                responseArea.innerHTML = statusInfo + responseArea.innerHTML;
+                
+            } catch (error) {
+                responseArea.innerHTML = `<span style="color: #dc3545;">خطا: ${error.message}</span>`;
+                responseArea.style.borderLeft = '5px solid #dc3545';
+            }
+        }
+
+        // Test currencies endpoint with filters
+        async function testCurrenciesEndpoint() {
+            const active = document.getElementById('currencies-active').value;
+            const tradeable = document.getElementById('currencies-tradeable').value;
+            const search = document.getElementById('currencies-search').value;
+            
+            let endpoint = '/currencies';
+            const params = [];
+            
+            if (active) params.push(`active=${active}`);
+            if (tradeable) params.push(`tradeable=${tradeable}`);
+            if (search) params.push(`search=${encodeURIComponent(search)}`);
+            
+            if (params.length > 0) {
+                endpoint += '?' + params.join('&');
+            }
+            
+            await testEndpoint('GET', endpoint, null, 'currencies-list-response', false);
+        }
+
+        // Test transactions endpoint with filters
+        async function testTransactionsEndpoint() {
+            const type = document.getElementById('transactions-type').value;
+            const status = document.getElementById('transactions-status').value;
+            const fromDate = document.getElementById('transactions-from-date').value;
+            const toDate = document.getElementById('transactions-to-date').value;
+            
+            let endpoint = '/transactions';
+            const params = [];
+            
+            if (type) params.push(`type=${type}`);
+            if (status) params.push(`status=${status}`);
+            if (fromDate) params.push(`from_date=${fromDate}`);
+            if (toDate) params.push(`to_date=${toDate}`);
+            
+            if (params.length > 0) {
+                endpoint += '?' + params.join('&');
+            }
+            
+            await testEndpoint('GET', endpoint, null, 'transactions-response', true);
+        }
+
+        async function testDiscountsEndpoint() {
+            const currencyId = document.getElementById('discounts-currency').value;
+            
+            let endpoint = '/discounts';
+            if (currencyId) {
+                endpoint += `?currency_id=${currencyId}`;
+            }
+            
+            await testEndpoint('GET', endpoint, null, 'discounts-response', true);
+        }
+
+        async function testValidateDiscountEndpoint() {
+            const code = document.getElementById('validate-code').value;
+            const amount = document.getElementById('validate-amount').value;
+            const currencyId = document.getElementById('validate-currency').value;
+            
+            const data = {
+                code: code,
+                amount: parseFloat(amount)
+            };
+            
+            if (currencyId) {
+                data.currency_id = parseInt(currencyId);
+            }
+            
+            await testEndpoint('POST', '/discounts/validate', data, 'discount-validate-response', true);
+        }
+
+        async function testDiscountUsageEndpoint() {
+            await testEndpoint('GET', '/discounts/my-usage', null, 'discount-usage-response', true);
+        }
+
+        // Admin discount endpoints
+        async function testAdminDiscountsListEndpoint() {
+            const status = document.getElementById('admin-discounts-status').value;
+            const search = document.getElementById('admin-discounts-search').value;
+            
+            let endpoint = '/admin/discounts';
+            const params = [];
+            
+            if (status) params.push(`status=${status}`);
+            if (search) params.push(`search=${encodeURIComponent(search)}`);
+            
+            if (params.length > 0) {
+                endpoint += '?' + params.join('&');
+            }
+            
+            await testEndpoint('GET', endpoint, null, 'admin-discounts-list-response', true);
+        }
+
+        async function testAdminDiscountUpdate() {
+            const id = document.getElementById('admin-discount-update-id').value;
+            if (!id) {
+                alert('لطفا شناسه تخفیف را وارد کنید');
+                return;
+            }
+            await testEndpoint('PUT', `/admin/discounts/${id}`, 'admin-discount-update-body', 'admin-discount-update-response', true);
+        }
+
+        async function testAdminDiscountDelete() {
+            const id = document.getElementById('admin-discount-delete-id').value;
+            if (!id) {
+                alert('لطفا شناسه تخفیف را وارد کنید');
+                return;
+            }
+            if (confirm('آیا از حذف این تخفیف اطمینان دارید؟')) {
+                await testEndpoint('DELETE', `/admin/discounts/${id}`, null, 'admin-discount-delete-response', true);
+            }
+        }
+
+        // Test currency detail
+        async function testCurrencyDetail() {
+            const currencyId = document.getElementById('currency-id').value;
+            await testEndpoint('GET', `/currencies/${currencyId}`, null, 'currency-detail-response', false);
+        }
+
+        // Active navigation
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Save token to localStorage
+        document.getElementById('authToken').addEventListener('change', function() {
+            localStorage.setItem('apiTestToken', this.value);
+        });
+
+        // Load token from localStorage
+        window.addEventListener('load', function() {
+            const savedToken = localStorage.getItem('apiTestToken');
+            if (savedToken) {
+                document.getElementById('authToken').value = savedToken;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -628,6 +628,48 @@ class AdminController extends Controller
     }
 
     /**
+     * List all discounts
+     */
+    public function listDiscounts(Request $request)
+    {
+        $query = Discount::with(['currency:id,symbol,name', 'user:id,name,email']);
+
+        // Filter by status
+        if ($request->has('status')) {
+            if ($request->status === 'active') {
+                $query->active();
+            } elseif ($request->status === 'inactive') {
+                $query->where('is_active', false);
+            } elseif ($request->status === 'expired') {
+                $query->where('expires_at', '<', now());
+            }
+        }
+
+        // Filter by type
+        if ($request->has('type')) {
+            $query->where('type', $request->type);
+        }
+
+        // Search
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('code', 'like', "%{$search}%")
+                  ->orWhere('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $discounts = $query->orderBy('created_at', 'desc')
+                          ->paginate($request->per_page ?? 15);
+
+        return response()->json([
+            'success' => true,
+            'data' => $discounts
+        ]);
+    }
+
+    /**
      * Delete discount
      */
     public function deleteDiscount($id)
